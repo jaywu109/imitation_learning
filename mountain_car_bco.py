@@ -46,19 +46,33 @@ class InvDynamicsNetwork(nn.Module):
     def __init__(self):
         super().__init__()
 
-        #This network should take in 4 inputs corresponding to car position and velocity in s and s'
-        # and have 3 outputs corresponding to the three different actions
-
-        #################
-        #TODO:
-        #################
+        # This network takes 4 inputs: (pos, vel) from s and (pos, vel) from s'
+        # and outputs 3 logits corresponding to the three actions (left, coast, right)
+        self.fc1 = nn.Linear(4, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.fc3 = nn.Linear(64, 3)
 
     def forward(self, x):
-        #this method performs a forward pass through the network
-        ###############
-        #TODO:
-        ###############
-        return x
+        # Forward pass with ReLU activations on hidden layers
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        return self.fc3(x)
+
+
+def train_inverse_dynamics(inv_dyn, s_s2_torch, a_torch, num_iters=500, lr=0.01):
+    """Train the inverse dynamics model using cross-entropy loss."""
+    optimizer = Adam(inv_dyn.parameters(), lr=lr)
+    loss_fn = nn.CrossEntropyLoss()
+    
+    for i in range(num_iters):
+        optimizer.zero_grad()
+        logits = inv_dyn(s_s2_torch)
+        loss = loss_fn(logits, a_torch)
+        loss.backward()
+        optimizer.step()
+        
+        if i % 100 == 0:
+            print(f"Inverse dynamics training - Iter {i}, Loss: {loss.item():.4f}")
     
 
 
@@ -66,25 +80,28 @@ class InvDynamicsNetwork(nn.Module):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--num_demos', default = 1, type=int, help="number of human demonstrations to collect")
-    parser.add_argument('--num_bc_iters', default = 100, type=int, help="number of iterations to run BC")
+    parser.add_argument('--num_bc_iters', default = 5000, type=int, help="number of iterations to run BC")
     parser.add_argument('--num_evals', default=6, type=int, help="number of times to run policy after training for evaluation")
 
     args = parser.parse_args()
 
 
-    #collect random interaction data
-    num_interactions = 5
+    #collect random interaction data (more episodes = better coverage of state space)
+    num_interactions = 20
+    print(f"Collecting random interaction data from {num_interactions} episodes...")
     s_s2, acs = collect_random_interaction_data(num_interactions)
+    print(f"Collected {len(acs)} state transitions for inverse dynamics training")
+    
     #put the data into tensors for feeding into torch
     s_s2_torch = torch.from_numpy(np.array(s_s2)).float().to(device)
     a_torch = torch.from_numpy(np.array(acs)).long().to(device)
 
 
-    #initialize inverse dynamics model
-    inv_dyn = InvDynamicsNetwork()  #TODO: need to fill in the blanks in this method
-    ##################
-    #TODO: Train the inverse dyanmics model, no need to be fancy you can do it in one full batch via gradient descent if you like
-    ##################
+    #initialize and train inverse dynamics model
+    inv_dyn = InvDynamicsNetwork()
+    print("\nTraining inverse dynamics model...")
+    train_inverse_dynamics(inv_dyn, s_s2_torch, a_torch, num_iters=5000, lr=0.01)
+    print("Inverse dynamics training complete!\n")
 
 
 
