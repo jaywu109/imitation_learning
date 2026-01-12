@@ -1,3 +1,6 @@
+import numpy as np
+if not hasattr(np, "bool8"):
+    np.bool8 = np.bool_
 import gym
 import argparse
 import pygame
@@ -5,7 +8,6 @@ from teleop import collect_demos
 import torch
 from torch.optim import Adam
 import torch.nn as nn
-import numpy as np
 import torch.nn.functional as F
 from mountain_car_bc import collect_human_demos, torchify_demos, train_policy, PolicyNetwork, evaluate_policy
 

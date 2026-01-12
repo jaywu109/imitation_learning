@@ -2,7 +2,7 @@
 
 <strong>Students may work in groups of 2-3 students for this homework and should only submit one report with the names of all group members along with answers to all the following questions. Please also submit all the source code. </strong>
 
-### Installation Ubuntu
+### Installation Ubuntu (skip if on Windows or iOS)
 First it is recommended that you install anaconda: <https://www.anaconda.com/products/distribution> a popular python distribution and software management platform.
 
 Next, git clone this repository.
@@ -37,7 +37,7 @@ then
 ```
 conda activate imitation_learning
 ```
-then
+then if on Windows run
 ```
 pip install gym[classic_control,other]==0.25.2
 ```
@@ -130,7 +130,7 @@ Were you able to teach the agent to oscillate without ending the episode early?
 Describe what changes you would need to make to the code in `mountain_car_bc.py` to implement [Behavior Cloning from Observation (BCO)](https://arxiv.org/abs/1805.01954). Answer this question before starting Part 8 and before looking at `mountain_car_bco.py`.
 
 ## Part 8
-Implement and test BCO(0) (see paper above for details) by training an inverse dynamics model. You can find starter code in `mountain_car_bco.py`. Report how well it works and what you tried to get it to work. Note that mountain_car_bco.py already imports and calls the bc functions — the only thing you have to do is code the inverse dynamics model and training code. You may need to play around a little with hyperparamters to adjust the amount of random exploration data, learning rate, network architecture, etc. But don't spend too much time perfecting this. If it's able to get out of the valley most of the time, that's great. 
+Implement and test BCO(0) (see paper above for details) by training an inverse dynamics model. You can find starter code in `mountain_car_bco.py`. Report how well it works and what you tried to get it to work. Note that mountain_car_bco.py already imports and calls the bc functions — the only thing you have to do is code the inverse dynamics model and training code. You may need to play around a little with hyperparamters to adjust the amount of random exploration data, learning rate, network architecture, etc. But don't spend too much time perfecting this. If it's able to get out of the valley sometimes, that's great and sufficient for this project. 
 
 
 
