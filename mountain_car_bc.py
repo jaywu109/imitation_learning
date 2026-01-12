@@ -1,3 +1,6 @@
+import numpy as np
+if not hasattr(np, "bool8"):
+    np.bool8 = np.bool_
 import gym
 import argparse
 import pygame
@@ -5,7 +8,6 @@ from teleop import collect_demos
 import torch
 from torch.optim import Adam
 import torch.nn as nn
-import numpy as np
 import torch.nn.functional as F
 
 
@@ -40,7 +42,18 @@ def torchify_demos(sas_pairs):
 
 
 def train_policy(obs, acs, nn_policy, num_train_iters):
-    """TODO: train the policy using standard behavior cloning. Feel free to add other helper methods if you'd like or restructure the code as desired."""
+    optimizer = Adam(nn_policy.parameters(), lr=1e-2)
+    loss_fn = nn.CrossEntropyLoss()
+    
+    # Convert data to dataset/loader if we wanted batching, but full batch is fine for this size
+    for i in range(num_train_iters):
+        optimizer.zero_grad()
+        logits = nn_policy(obs)
+        loss = loss_fn(logits, acs)
+        loss.backward()
+        optimizer.step()
+        # if i % 100 == 0:
+        #     print(f"Iter {i}, Loss: {loss.item()}")
 
 
 
@@ -54,12 +67,14 @@ class PolicyNetwork(nn.Module):
     def __init__(self):
         super().__init__()
 
-       """TODO: create the layers for the neural network. A two-layer network should be sufficient"""
+        self.fc1 = nn.Linear(2, 32)
+        self.fc2 = nn.Linear(32, 3)
 
 
 
     def forward(self, x):
-        """TODO: this method performs a forward pass through the network, applying a non-linearity (ReLU is fine) on the hidden layers and should output logit values (since this is a discrete action task) for the 3-way classification problem"""
+        x = F.relu(self.fc1(x))
+        return self.fc2(x)
 
     
 
@@ -94,7 +109,7 @@ def evaluate_policy(pi, num_evals, human_render=True):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--num_demos', default = 1, type=int, help="number of human demonstrations to collect")
-    parser.add_argument('--num_bc_iters', default = 100, type=int, help="number of iterations to run BC")
+    parser.add_argument('--num_bc_iters', default = 5000, type=int, help="number of iterations to run BC")
     parser.add_argument('--num_evals', default=6, type=int, help="number of times to run policy after training for evaluation")
 
     args = parser.parse_args()
